@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Flour and Spices</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: a calm shopping list. Items on the left, a sticky cart on the right (stacked on phones, with a bottom bar).
+   Palette: cardamom green for actions, turmeric only for the "+ tax" tags. */
+:root {
+  --bg: #F4F6F1;
+  --surface: #FFFFFF;
+  --ink: #1B2A22;
+  --muted: #5B6B62;
+  --line: #DDE3DA;
+  --accent: #1F6B4A;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E3F0E8;
+  --spice: #8A5200;
+  --spice-soft: #FBEFD6;
+  --danger: #B3261E;
+  --danger-soft: #FCE8E6;
+  --display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --body: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101713; --surface: #18221C; --ink: #E7EFE9; --muted: #9FB0A5; --line: #2A3830;
+    --accent: #4FBF8A; --accent-ink: #0B1A12; --accent-soft: #1D3328;
+    --spice: #E8B04A; --spice-soft: #33291A; --danger: #FF8A80; --danger-soft: #3A1F1D;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101713; --surface: #18221C; --ink: #E7EFE9; --muted: #9FB0A5; --line: #2A3830;
+  --accent: #4FBF8A; --accent-ink: #0B1A12; --accent-soft: #1D3328;
+  --spice: #E8B04A; --spice-soft: #33291A; --danger: #FF8A80; --danger-soft: #3A1F1D;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 16px/1.5 var(--body);
+  padding-block: 0 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1080px; margin: 0 auto; }
+a { color: var(--accent); }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+header.top { padding-block: 28px 8px; display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; justify-content: space-between; }
+h1 { font: 700 clamp(1.7rem, 4.5vw, 2.4rem)/1.1 var(--display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.sub { margin: 4px 0 0; color: var(--muted); max-width: 52ch; }
+.links { display: flex; gap: 16px; font-weight: 500; font-size: 0.95rem; }
+.demo { margin: 12px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--spice-soft); color: var(--spice); font-size: 0.92rem; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: start; margin-top: 16px; }
+@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } body { padding-bottom: 96px; } }
+
+.tools { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+.search { width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-size: 0.92rem; }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+.group h2 { font: 600 1.05rem/1.3 var(--display); margin: 24px 0 4px; display: flex; gap: 10px; align-items: baseline; }
+.group h2 small { font: 400 0.85rem var(--body); color: var(--muted); }
+ul.list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.pic { width: 72px; height: 72px; padding: 0; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); overflow: hidden; display: grid; place-items: center; }
+button.pic { cursor: zoom-in; }
+.pic { position: relative; }
+.pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+.pic.ph { background: var(--accent-soft); color: var(--accent); font: 700 1.6rem var(--display); border-color: transparent; }
+@media (min-width: 861px) { .pic { width: 84px; height: 84px; } }
+.nopics .row { grid-template-columns: minmax(0, 1fr) auto; }
+@media (max-width: 480px) {
+  .row { grid-template-columns: auto minmax(0, 1fr); }
+  .row .pic { grid-row: 1 / span 2; width: 64px; height: 64px; }
+  .row .ctl { grid-column: 2; }
+  .nopics .row { grid-template-columns: minmax(0, 1fr) auto; }
+  .nopics .row .ctl { grid-column: auto; }
+}
+.row .name { font-weight: 500; overflow-wrap: anywhere; }
+.row .meta { color: var(--muted); font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 2px; }
+.tag { font-size: 0.75rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--spice-soft); color: var(--spice); }
+.low { color: var(--danger); font-weight: 500; }
+.btn { border: 1px solid var(--accent); background: transparent; color: var(--accent); border-radius: 10px; padding: 8px 18px; font-weight: 600; cursor: pointer; min-height: 40px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); width: 100%; padding: 14px 18px; font-size: 1rem; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--accent); border-radius: 10px; overflow: hidden; }
+.stepper button { width: 40px; height: 40px; border: 0; background: transparent; color: var(--accent); font-size: 1.25rem; cursor: pointer; }
+.stepper button:disabled { opacity: 0.35; cursor: not-allowed; }
+.stepper output { min-width: 32px; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+.empty { padding: 28px 0; color: var(--muted); }
+
+.cart { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; }
+@media (max-width: 860px) { .cart { position: static; max-height: none; overflow: visible; } }
+.cart h2 { font: 700 1.25rem/1.2 var(--display); margin: 0 0 12px; }
+.lines { list-style: none; margin: 0 0 8px; padding: 0; }
+.line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 0.95rem; }
+.line .n { overflow-wrap: anywhere; }
+.line .q { color: var(--muted); font-size: 0.85rem; }
+.line .t { font-variant-numeric: tabular-nums; text-align: right; font-weight: 500; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 0.85rem; justify-self: start; }
+fieldset { border: 0; margin: 16px 0 0; padding: 0; min-width: 0; }
+legend { font-weight: 600; padding: 0; margin-bottom: 8px; }
+.opt { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; cursor: pointer; }
+.opt:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.opt input { margin-top: 4px; accent-color: var(--accent); }
+.opt span { font-size: 0.92rem; overflow-wrap: anywhere; }
+label.f { display: block; font-weight: 600; margin-top: 16px; }
+.field { display: block; width: 100%; margin-top: 6px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+dl.tot { margin: 16px 0 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 0; font-size: 0.95rem; }
+dl.tot dt { color: var(--muted); padding-right: 12px; }
+dl.tot dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+dl.tot .grand { font-weight: 700; font-size: 1.15rem; color: var(--ink); padding-top: 8px; border-top: 1px solid var(--line); }
+.hint { font-size: 0.88rem; color: var(--muted); margin: 8px 0 0; }
+.msg { margin-top: 12px; padding: 10px 14px; border-radius: 10px; font-size: 0.92rem; background: var(--danger-soft); color: var(--danger); }
+.msg.ok { background: var(--accent-soft); color: var(--ink); }
+.pay { margin-top: 12px; font-size: 0.9rem; color: var(--muted); }
+
+.done { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-top: 16px; max-width: 640px; }
+.done h2 { font: 700 1.5rem/1.2 var(--display); margin: 0 0 4px; }
+.done .no { font: 600 1.1rem var(--display); color: var(--accent); }
+
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: none; justify-content: space-between; align-items: center; gap: 12px;
+  background: var(--accent); color: var(--accent-ink); text-decoration: none; font-weight: 600;
+  padding: 14px max(16px, env(safe-area-inset-right, 0px)) calc(14px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+@media (max-width: 860px) { .bar:not([hidden]) { display: flex; } }
+.lb { border: 0; border-radius: 16px; padding: 14px; width: min(92vw, 560px); background: var(--surface); color: var(--ink); }
+.lb::backdrop { background: rgba(0, 0, 0, 0.6); }
+.lb img { display: block; max-width: 100%; max-height: 72vh; margin: 0 auto; border-radius: 10px; }
+.lb p { margin: 10px 0 0; font-weight: 500; overflow-wrap: anywhere; }
+.lb .btn { margin-top: 10px; }
+@media (prefers-reduced-motion: no-preference) { .chip, .btn, .opt { transition: background-color .15s, border-color .15s; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>The Flour and Spices</h1>
+      <p class="sub">Indian pantry staples: flours, masalas, snacks and pickles. Choose your items and pickup, and we'll email your invoice.</p>
+    </div>
+    <nav class="links" aria-label="Find us">
+      <a href="https://www.instagram.com/theflourandspices" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://chat.whatsapp.com/Gnfj1lSDifV2RLEn1NFaKx" target="_blank" rel="noopener">WhatsApp</a>
+    </nav>
+  </header>
+  <p class="demo" id="demo" hidden>Preview with sample items and prices. Orders placed here are not sent anywhere.</p>
+
+  <div id="loading" class="empty" role="status">Loading items…</div>
+  <div id="loaderr" class="msg" role="alert" hidden></div>
+
+  <section id="done" class="done" hidden aria-live="polite"></section>
+
+  <div class="layout" id="shop" hidden>
+    <main>
+      <div class="tools">
+        <label class="hp" for="search">Search items</label>
+        <input id="search" class="search" type="search" placeholder="Search items" autocomplete="off">
+        <div class="chips" id="chips" role="group" aria-label="Categories"></div>
+      </div>
+      <div id="items"></div>
+    </main>
+
+    <aside class="cart" id="cart" aria-label="Your order">
+      <h2>Your order</h2>
+      <p id="cartEmpty" class="hint">Nothing here yet. Tap Add on any item.</p>
+      <ul class="lines" id="lines"></ul>
+
+      <form id="form" novalidate>
+        <fieldset id="pickup"><legend>Pickup or delivery</legend></fieldset>
+        <label class="f" for="email">Your email</label>
+        <input class="field" id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
+        <p class="hint">We send your invoice here.</p>
+        <div class="hp" aria-hidden="true"><label>Website <input id="website" name="website" tabindex="-1" autocomplete="off"></label></div>
+
+        <dl class="tot" id="tot" aria-live="polite"></dl>
+        <p class="hint" id="freeHint" hidden></p>
+        <div id="msg" role="alert" hidden></div>
+        <p style="margin:16px 0 0"><button class="btn primary" id="place" type="submit">Place order</button></p>
+        <p class="pay" id="pay"></p>
+      </form>
+    </aside>
+  </div>
+</div>
+<dialog class="lb" id="lb" aria-label="Product photo">
+  <img id="lbimg" alt="">
+  <p id="lbcap"></p>
+  <button class="btn" id="lbclose" type="button">Close</button>
+</dialog>
+<a class="bar" id="bar" href="#cart" hidden><span id="barCount">0 items</span><span id="barTotal">$0.00</span></a>
+
+<script>
+/* ---- Settings ---- */
+// Paste your Apps Script web app URL (it ends in /exec) between the quotes to go live.
+// Leave it empty to preview the page with sample items.
+const API_URL = '';
+// Pictures: put them next to this page in a folder called images (full size) with a thumb
+// folder inside it (small versions). The picture file name for each item comes from the
+// inventory sheet (column E).
+const IMAGE_BASE = 'images/';
+const DEMO_IMG = {};
+
+/* PURE:START */
+function fmt(cents) { return '$' + (cents / 100).toFixed(2); }
+// Same arithmetic as the server: whole cents, tax rounded per line, fee waived at the threshold.
+function computeTotals(lines, rules, pickupLabel) {
+  const out = lines.map(function (l) {
+    const c = Math.round(l.price * 100) * l.qty;
+    const t = l.taxable ? Math.round(c * rules.taxRate + 1e-9) : 0;
+    return { name: l.name, qty: l.qty, cents: c, taxCents: t, taxable: !!l.taxable };
+  });
+  const itemsCents = out.reduce(function (s, l) { return s + l.cents; }, 0);
+  const taxCents = out.reduce(function (s, l) { return s + l.taxCents; }, 0);
+  const opt = rules.pickup.find(function (p) { return p.label === pickupLabel; });
+  const base = opt ? opt.feeCents : 0;
+  const waived = base > 0 && rules.freeDeliveryOverCents > 0 && itemsCents >= rules.freeDeliveryOverCents;
+  const feeCents = waived ? 0 : base;
+  return { lines: out, itemsCents: itemsCents, taxCents: taxCents, feeCents: feeCents, waived: waived,
+           baseFeeCents: base, totalCents: itemsCents + taxCents + feeCents };
+}
+/* PURE:END */
+
+const DEMO = {
+  items: [
+    { name: 'Flours - Sohum Udyog Ragi Flour 500 GM', price: 4.49, max: 10, taxable: false, image: 'Ragi_Flour.jpg' },
+    { name: 'Flours - Sohum Udyog Jowar Flour 2 LB', price: 4.99, max: 10, taxable: false, image: 'Sorghum_Flour.jpg' },
+    { name: 'Flours - Sohum Udyog Pancake Flour (Ghavan Peeth)', price: 4.79, max: 10, taxable: false, image: 'Pancake_Flour.jpg' },
+    { name: 'Flours - Sohum Udyog Thalipeeth Bhajani 2 LB', price: 6.49, max: 10, taxable: false, image: 'Thalipeeth_Bhajani.jpg' },
+    { name: 'Flours - Sohum Udyog Chakki Fresh Atta 10 LB', price: 11.99, max: 4, taxable: false, image: 'Chakki_Fresh_Lokwan_Atta.jpg' },
+    { name: 'Masala - Sohum Udyog Goda Masala', price: 4.29, max: 10, taxable: false, image: 'Goda_Masala.jpg' },
+    { name: 'Masala - Sohum Udyog Besan Laddu Mix', price: 3.99, max: 10, taxable: true, image: 'Besan_Laddu_Mix.jpg' },
+    { name: 'Snacks - Athavale\'s Bhajani Chakli', price: 5.99, max: 10, taxable: true, image: 'Athavales_Bhajani_Chakli.jpg' },
+    { name: 'Snacks - Athavale\'s Patal Pohe Chivda', price: 4.99, max: 2, taxable: true, image: 'Athavales_Patal_Pohe.jpg' },
+    { name: 'Snacks - Ram Bandhu Nashik Chivda', price: 5.49, max: 10, taxable: true, image: 'Nashik_Chivda.jpg' },
+    { name: 'Snacks - Sohum Udyog Methkut', price: 2.99, max: 10, taxable: false, image: '' },
+    { name: 'Papad & Pickles - Ram Bandhu Mango Pickle', price: 6.99, max: 10, taxable: false, image: 'Ram_Bandhu_Mango_Pickle.jpg' },
+    { name: 'Papad & Pickles - Sohum Udyog Sandgi Mirchi', price: 2.99, max: 10, taxable: false, image: 'Sandgi_Mirchi.jpg' },
+    { name: 'Specialty - Pandit Foods Kokam Syrup', price: 8.99, max: 10, taxable: false, image: 'Kokam_Syrup.jpg' },
+    { name: 'Specialty - Pandit Foods Kairi Panhe', price: 8.99, max: 10, taxable: false, image: 'Kairi_Panhe.jpg' },
+    { name: 'Specialty - Pandit Foods Indrayani Rice 10 LB', price: 14.99, max: 6, taxable: false, image: 'Indrayani_Rice.jpg' },
+    { name: 'Specialty - Kailas Bhel Khatti Meethi Imli Chutney', price: 3.49, max: 10, taxable: true, image: 'Imli_Chutney.jpg' }
+  ],
+  pickup: [
+    { label: 'Valrico (Free pickup)', feeCents: 0 },
+    { label: 'New Tampa (At public location - $2.00 Delivery Fee, free on orders of $50 or more)', feeCents: 200 },
+    { label: 'Other (Please confirm with us)', feeCents: 0 }
+  ],
+  taxRate: 0.075, freeDeliveryOverCents: 5000, maxQty: 10,
+  paymentText: 'Please pay by Zelle at the time of pickup or delivery. Your invoice email has the details.'
+};
+
+let catalog = null;           // { items, pickup, taxRate, ... }
+let cart = {};                // item index -> qty
+let pickupChoice = '';
+let sending = false;
+const $ = function (id) { return document.getElementById(id); };
+const esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+let category = 'All', query = '';
+
+/* ---- saved cart (a convenience only; the page works without it) ---- */
+function saveState() {
+  try {
+    const byName = {};
+    Object.keys(cart).forEach(function (i) { byName[catalog.items[i].name] = cart[i]; });
+    localStorage.setItem('fas-order-v1', JSON.stringify({ cart: byName, email: $('email').value, pickup: pickupChoice }));
+  } catch (e) {}
+}
+function loadState() {
+  try { return JSON.parse(localStorage.getItem('fas-order-v1') || 'null'); } catch (e) { return null; }
+}
+function clearCartState() { try { localStorage.removeItem('fas-order-v1'); } catch (e) {} }
+
+/* ---- catalog ---- */
+function fetchCatalog() {
+  if (!API_URL) return Promise.resolve(DEMO);
+  return fetch(API_URL, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (c) {
+    if (c.error) throw new Error(c.error);
+    return c;
+  });
+}
+function splitName(full) {
+  const k = full.indexOf(' - ');
+  return k > 0 ? { cat: full.slice(0, k), label: full.slice(k + 3) } : { cat: 'Other items', label: full };
+}
+// Keeps the cart valid after the item list changes (an item sold out, or fewer left)
+function reconcileCart(saved) {
+  const next = {}; let changed = false;
+  const src = saved || null;
+  if (src) {
+    Object.keys(src).forEach(function (name) {
+      const i = catalog.items.findIndex(function (it) { return it.name === name; });
+      if (i === -1) { changed = true; return; }
+      const q = Math.min(src[name], catalog.items[i].max);
+      if (q !== src[name]) changed = true;
+      if (q > 0) next[i] = q;
+    });
+  } else {
+    Object.keys(cart).forEach(function (i) {
+      const q = Math.min(cart[i], catalog.items[i].max);
+      if (q !== cart[i]) changed = true;
+      if (q > 0) next[i] = q;
+    });
+  }
+  cart = next;
+  return changed;
+}
+
+/* ---- items ---- */
+function imgUrl(it, thumb) {
+  const v = it.image || '';
+  if (!v) return '';
+  if (DEMO_IMG[v]) return DEMO_IMG[v];
+  if (/^https:\/\//i.test(v)) return v;
+  return IMAGE_BASE + (thumb ? 'thumb/' : '') + encodeURIComponent(v);
+}
+function picHtml(i, s) {
+  if (!catalog.items.some(function (x) { return x.image; })) return '';  // no pictures set up: plain list
+  const it = catalog.items[i], th = imgUrl(it, true), ph = esc(s.label.charAt(0).toUpperCase());
+  if (!th) return '<div class="pic ph" aria-hidden="true">' + ph + '</div>';
+  return '<button class="pic" type="button" data-zoom="' + i + '" data-ph="' + ph + '" aria-label="Enlarge photo of ' + esc(s.label) + '">' +
+    '<img src="' + esc(th) + '" alt="" width="84" height="84" loading="lazy"></button>';
+}
+function openZoom(i) {
+  const lb = $('lb'), it = catalog.items[i];
+  if (typeof lb.showModal !== 'function') return;
+  const full = imgUrl(it, false), thumb = imgUrl(it, true);
+  let fell = false;
+  $('lbimg').onerror = function () { if (!fell && thumb) { fell = true; this.src = thumb; } };
+  $('lbimg').src = full;
+  $('lbcap').textContent = splitName(it.name).label;
+  lb.showModal();
+}
+function controlHtml(i) {
+  const q = cart[i] || 0, it = catalog.items[i];
+  if (!q) return '<button class="btn" type="button" data-act="add" data-i="' + i + '" aria-label="Add ' + esc(splitName(it.name).label) + '">Add</button>';
+  return '<div class="stepper"><button type="button" data-act="dec" data-i="' + i + '" aria-label="One less">&minus;</button>' +
+    '<output aria-label="Quantity">' + q + '</output>' +
+    '<button type="button" data-act="inc" data-i="' + i + '" aria-label="One more"' + (q >= it.max ? ' disabled' : '') + '>+</button></div>';
+}
+function renderChips() {
+  const cats = ['All'];
+  catalog.items.forEach(function (it) { const c = splitName(it.name).cat; if (cats.indexOf(c) === -1) cats.push(c); });
+  $('chips').innerHTML = cats.map(function (c) {
+    return '<button class="chip" type="button" data-cat="' + esc(c) + '" aria-pressed="' + (c === category) + '">' + esc(c) + '</button>';
+  }).join('');
+}
+function renderItems() {
+  const groups = {}, order = [];
+  catalog.items.forEach(function (it, i) {
+    const s = splitName(it.name);
+    if (category !== 'All' && s.cat !== category) return;
+    if (query && it.name.toLowerCase().indexOf(query) === -1) return;
+    if (!groups[s.cat]) { groups[s.cat] = []; order.push(s.cat); }
+    groups[s.cat].push(i);
+  });
+  if (!order.length) { $('items').innerHTML = '<p class="empty">No items match. Try a different word or category.</p>'; return; }
+  $('items').innerHTML = order.map(function (c) {
+    return '<section class="group"><h2>' + esc(c) + ' <small>' + groups[c].length + (groups[c].length === 1 ? ' item' : ' items') + '</small></h2><ul class="list">' +
+      groups[c].map(function (i) {
+        const it = catalog.items[i], s = splitName(it.name);
+        return '<li class="row" data-row="' + i + '">' + picHtml(i, s) + '<div><div class="name">' + esc(s.label) + '</div><div class="meta"><span>' + fmt(Math.round(it.price * 100)) + ' each</span>' +
+          (it.taxable ? '<span class="tag">+ tax</span>' : '') + (it.max <= 5 ? '<span class="low">Only ' + it.max + ' left</span>' : '') +
+          '</div></div><div class="ctl">' + controlHtml(i) + '</div></li>';
+      }).join('') + '</ul></section>';
+  }).join('');
+}
+
+/* ---- cart and totals ---- */
+function cartLines() {
+  return Object.keys(cart).map(function (i) {
+    const it = catalog.items[i];
+    return { name: it.name, price: it.price, qty: cart[i], taxable: it.taxable, i: i };
+  });
+}
+function renderCart() {
+  const lines = cartLines();
+  const t = computeTotals(lines, catalog, pickupChoice);
+  $('cartEmpty').hidden = lines.length > 0;
+  $('lines').innerHTML = t.lines.map(function (l, k) {
+    return '<li class="line"><span class="n">' + esc(splitName(l.name).label) + '</span><span class="t">' + fmt(l.cents) + '</span>' +
+      '<span class="q">' + l.qty + ' &times; ' + fmt(Math.round(lines[k].price * 100)) + (l.taxable ? ' + tax' : '') + '</span>' +
+      '<span class="t"><button class="linkbtn" type="button" data-act="rm" data-i="' + lines[k].i + '">Remove</button></span></li>';
+  }).join('');
+  const rate = Number((catalog.taxRate * 100).toFixed(2));
+  let h = '<dt>Items</dt><dd>' + fmt(t.itemsCents) + '</dd>';
+  if (t.taxCents > 0) h += '<dt>Tax (' + rate + '% on items marked + tax)</dt><dd>' + fmt(t.taxCents) + '</dd>';
+  if (t.baseFeeCents > 0) h += '<dt>Delivery fee' + (t.waived ? ' (free over ' + fmt(catalog.freeDeliveryOverCents) + ')' : '') + '</dt><dd>' + fmt(t.feeCents) + '</dd>';
+  h += '<dt class="grand">Total</dt><dd class="grand">' + fmt(t.totalCents) + '</dd>';
+  $('tot').innerHTML = h;
+  const need = catalog.freeDeliveryOverCents - t.itemsCents;
+  const fh = $('freeHint');
+  if (t.baseFeeCents > 0 && !t.waived && catalog.freeDeliveryOverCents > 0 && t.itemsCents > 0) {
+    fh.hidden = false; fh.textContent = 'Add ' + fmt(need) + ' more for free delivery.';
+  } else { fh.hidden = true; }
+  $('place').textContent = lines.length ? 'Place order · ' + fmt(t.totalCents) : 'Place order';
+  const count = lines.reduce(function (s, l) { return s + l.qty; }, 0);
+  $('bar').hidden = count === 0;
+  $('barCount').textContent = count + (count === 1 ? ' item' : ' items') + ' · view order';
+  $('barTotal').textContent = fmt(t.totalCents);
+}
+function renderPickup() {
+  $('pickup').innerHTML = '<legend>Pickup or delivery</legend>' + catalog.pickup.map(function (p, k) {
+    return '<label class="opt"><input type="radio" name="pickup" value="' + k + '"' + (p.label === pickupChoice ? ' checked' : '') + '><span>' + esc(p.label) + '</span></label>';
+  }).join('');
+}
+
+function setQty(i, q) {
+  const it = catalog.items[i];
+  q = Math.max(0, Math.min(q, it.max));
+  if (q) cart[i] = q; else delete cart[i];
+  const row = document.querySelector('[data-row="' + i + '"] .ctl');
+  if (row) row.innerHTML = controlHtml(i);
+  renderCart(); saveState();
+}
+
+function showMsg(text, ok) {
+  const m = $('msg');
+  if (!text) { m.hidden = true; m.textContent = ''; return; }
+  m.hidden = false; m.className = 'msg' + (ok ? ' ok' : ''); m.textContent = text;
+}
+
+/* ---- placing the order ---- */
+function validate() {
+  if (!Object.keys(cart).length) return 'Your cart is empty. Tap Add on an item first.';
+  if (!pickupChoice) return 'Please choose pickup or delivery.';
+  const em = $('email').value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) return 'Please enter a valid email address.';
+  return '';
+}
+function submitOrder(e) {
+  e.preventDefault();
+  if (sending) return;
+  const problem = validate();
+  if (problem) { showMsg(problem); return; }
+  showMsg('');
+  sending = true; $('place').disabled = true; $('place').textContent = 'Placing your order…';
+  const lines = cartLines();
+  const payload = { email: $('email').value.trim(), pickup: pickupChoice, website: $('website').value,
+    items: lines.map(function (l) { return { name: l.name, qty: l.qty }; }) };
+  let p;
+  if (!API_URL) {
+    const t = computeTotals(lines, catalog, pickupChoice);
+    p = Promise.resolve({ ok: true, orderNo: 'ORD-DEMO', emailSent: true, pickup: pickupChoice, lines: t.lines,
+      itemsCents: t.itemsCents, taxCents: t.taxCents, feeCents: t.feeCents, waived: t.waived, totalCents: t.totalCents });
+  } else {
+    // text/plain keeps this a "simple" request, which Apps Script web apps accept from any website
+    p = fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+      .then(function (r) { return r.json(); });
+  }
+  p.then(function (res) {
+    if (!res.ok) { showMsg(res.error || 'Your order was not placed. Please try again.');
+      if (/no longer available|only \d+/.test(res.error || '')) refreshCatalog(false, true);
+      return; }
+    showDone(res);
+  }).catch(function () {
+    showMsg('We could not reach the order system. Your order was not placed. Please check your connection and try again, or message us on WhatsApp.');
+  }).then(function () {
+    sending = false; $('place').disabled = false; renderCart();
+  });
+}
+function showDone(r) {
+  const rate = Number((catalog.taxRate * 100).toFixed(2));
+  let h = '<h2>Thank you for your order</h2><p class="no">' + esc(r.orderNo) + '</p>' +
+    '<p>' + (r.emailSent ? 'Your invoice is on its way to ' + esc($('email').value.trim()) + '. If you do not see it in a few minutes, check your spam folder.'
+      : 'Your order is placed, but we could not send the invoice email. We will contact you shortly.') + '</p>' +
+    '<ul class="lines">' + r.lines.map(function (l) {
+      return '<li class="line"><span class="n">' + esc(splitName(l.name).label) + '</span><span class="t">' + fmt(l.cents + l.taxCents) + '</span><span class="q">' + l.qty + ' &times; ' + fmt(l.cents / l.qty) + (l.taxCents ? ' + ' + fmt(l.taxCents) + ' tax' : '') + '</span></li>';
+    }).join('') + '</ul><dl class="tot"><dt>Items</dt><dd>' + fmt(r.itemsCents) + '</dd>' +
+    (r.taxCents ? '<dt>Tax (' + rate + '%)</dt><dd>' + fmt(r.taxCents) + '</dd>' : '') +
+    (r.feeCents || r.waived ? '<dt>Delivery fee' + (r.waived ? ' (free)' : '') + '</dt><dd>' + fmt(r.feeCents) + '</dd>' : '') +
+    '<dt class="grand">Total</dt><dd class="grand">' + fmt(r.totalCents) + '</dd></dl>' +
+    '<p>' + esc(r.pickup) + '</p><p class="pay">' + esc(catalog.paymentText) + '</p>' +
+    '<p><button class="btn" id="again" type="button">Start a new order</button></p>';
+  $('done').innerHTML = h; $('done').hidden = false; $('shop').hidden = true; $('bar').hidden = true;
+  clearCartState(); cart = {}; pickupChoice = '';
+  window.scrollTo(0, 0);
+}
+
+function refreshCatalog(notify, keepMessage) {
+  return fetchCatalog().then(function (c) {
+    catalog = c;
+    const changed = reconcileCart();
+    renderChips(); renderItems(); renderPickup(); renderCart(); saveState();
+    if (!keepMessage && (notify || changed)) showMsg('Some items changed since you added them, so we updated your order. Please check it before placing it.');
+  }).catch(function () {});
+}
+
+/* ---- start ---- */
+function start() {
+  $('demo').hidden = !!API_URL;
+  fetchCatalog().then(function (c) {
+    catalog = c;
+    const saved = loadState();
+    if (saved) { reconcileCart(saved.cart); pickupChoice = (catalog.pickup.some(function (p) { return p.label === saved.pickup; }) ? saved.pickup : ''); $('email').value = saved.email || ''; }
+    $('pay').textContent = catalog.paymentText;
+    renderChips(); renderItems(); renderPickup(); renderCart();
+    $('loading').hidden = true; $('shop').hidden = false;
+  }).catch(function (err) {
+    $('loading').hidden = true;
+    $('loaderr').hidden = false;
+    $('loaderr').innerHTML = esc(err && err.message ? err.message : 'We could not load the item list.') + ' <button class="linkbtn" type="button" id="retry">Try again</button>';
+  });
+
+  document.addEventListener('click', function (e) {
+    const t = e.target.closest('button'); if (!t) return;
+    if (t.dataset.zoom !== undefined) { openZoom(Number(t.dataset.zoom)); return; }
+    if (t.id === 'lbclose') { $('lb').close(); return; }
+    if (t.id === 'again') { $('done').hidden = true; $('shop').hidden = false; showMsg(''); refreshCatalog(false); window.scrollTo(0, 0); return; }
+    if (t.id === 'retry') { location.reload(); return; }
+    if (t.dataset.cat) { category = t.dataset.cat; renderChips(); renderItems(); return; }
+    const act = t.dataset.act; if (!act) return;
+    const i = Number(t.dataset.i), q = cart[i] || 0;
+    if (act === 'add' || act === 'inc') setQty(i, q + 1);
+    else if (act === 'dec') setQty(i, q - 1);
+    else if (act === 'rm') setQty(i, 0);
+    showMsg('');
+    if (act !== 'rm') {
+      const ctl = document.querySelector('[data-row="' + i + '"] .ctl');
+      const keep = ctl && (ctl.querySelector('[data-act="' + (act === 'dec' && q - 1 > 0 ? 'dec' : act === 'dec' ? 'add' : (q + 1 >= catalog.items[i].max ? 'dec' : 'inc')) + '"]'));
+      if (keep) keep.focus();
+    }
+  });
+  $('lb').addEventListener('click', function (e) { if (e.target === this) this.close(); });
+  // a picture that fails to load becomes a plain letter tile instead of a broken image
+  document.addEventListener('error', function (e) {
+    const im = e.target, b = im && im.tagName === 'IMG' && im.closest ? im.closest('button.pic') : null;
+    if (!b) return;
+    const d = document.createElement('div');
+    d.className = 'pic ph'; d.setAttribute('aria-hidden', 'true'); d.textContent = b.dataset.ph || '';
+    b.replaceWith(d);
+  }, true);
+  $('search').addEventListener('input', function (e) { query = e.target.value.trim().toLowerCase(); renderItems(); });
+  $('pickup').addEventListener('change', function (e) {
+    if (e.target.name === 'pickup') { pickupChoice = catalog.pickup[Number(e.target.value)].label; renderCart(); saveState(); showMsg(''); }
+  });
+  $('email').addEventListener('input', saveState);
+  $('form').addEventListener('submit', submitOrder);
+}
+start();
+</script>
+
+</body>
+</html>
