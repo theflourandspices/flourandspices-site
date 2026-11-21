@@ -183,6 +183,9 @@ dl.tot .grand { font-weight: 700; font-size: 1.15rem; color: var(--ink); padding
         <label class="f" for="email">Your email</label>
         <input class="field" id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
         <p class="hint">We send your invoice here.</p>
+        <label class="f" for="phone">Your phone number</label>
+        <input class="field" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(813) 555-1234" maxlength="20" required>
+        <p class="hint">So we can reach you about your order.</p>
         <div class="hp" aria-hidden="true"><label>Website <input id="website" name="website" tabindex="-1" autocomplete="off"></label></div>
 
         <dl class="tot" id="tot" aria-live="polite"></dl>
@@ -274,7 +277,7 @@ function saveState() {
   try {
     const byName = {};
     Object.keys(cart).forEach(function (i) { byName[catalog.items[i].name] = cart[i]; });
-    localStorage.setItem('fas-order-v1', JSON.stringify({ cart: byName, email: $('email').value, pickup: pickupChoice }));
+    localStorage.setItem('fas-order-v1', JSON.stringify({ cart: byName, email: $('email').value, phone: $('phone').value, pickup: pickupChoice }));
   } catch (e) {}
 }
 function loadState() {
@@ -323,7 +326,7 @@ function imgUrl(it, thumb) {
   if (!v) return '';
   if (DEMO_IMG[v]) return DEMO_IMG[v];
   if (/^https:\/\//i.test(v)) return v;
- return IMAGE_BASE + encodeURIComponent(v);
+  return IMAGE_BASE + encodeURIComponent(v);
 }
 function picHtml(i, s) {
   if (!catalog.items.some(function (x) { return x.image; })) return '';  // no pictures set up: plain list
@@ -432,11 +435,17 @@ function showMsg(text, ok) {
 }
 
 /* ---- placing the order ---- */
+function phoneDigits(v) {
+  let d = String(v || '').replace(/\D/g, '');
+  if (d.length === 11 && d.charAt(0) === '1') d = d.slice(1);
+  return d.length === 10 ? d : '';
+}
 function validate() {
   if (!Object.keys(cart).length) return 'Your cart is empty. Tap Add on an item first.';
   if (!pickupChoice) return 'Please choose pickup or delivery.';
   const em = $('email').value.trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) return 'Please enter a valid email address.';
+  if (!phoneDigits($('phone').value)) return 'Please enter a 10-digit phone number.';
   return '';
 }
 function submitOrder(e) {
@@ -447,7 +456,7 @@ function submitOrder(e) {
   showMsg('');
   sending = true; $('place').disabled = true; $('place').textContent = 'Placing your order…';
   const lines = cartLines();
-  const payload = { email: $('email').value.trim(), pickup: pickupChoice, website: $('website').value,
+  const payload = { email: $('email').value.trim(), phone: phoneDigits($('phone').value), pickup: pickupChoice, website: $('website').value,
     items: lines.map(function (l) { return { name: l.name, qty: l.qty }; }) };
   let p;
   if (!API_URL) {
@@ -503,7 +512,7 @@ function start() {
   fetchCatalog().then(function (c) {
     catalog = c;
     const saved = loadState();
-    if (saved) { reconcileCart(saved.cart); pickupChoice = (catalog.pickup.some(function (p) { return p.label === saved.pickup; }) ? saved.pickup : ''); $('email').value = saved.email || ''; }
+    if (saved) { reconcileCart(saved.cart); pickupChoice = (catalog.pickup.some(function (p) { return p.label === saved.pickup; }) ? saved.pickup : ''); $('email').value = saved.email || ''; $('phone').value = saved.phone || ''; }
     $('pay').textContent = catalog.paymentText;
     renderChips(); renderItems(); renderPickup(); renderCart();
     $('loading').hidden = true; $('shop').hidden = false;
@@ -546,6 +555,7 @@ function start() {
     if (e.target.name === 'pickup') { pickupChoice = catalog.pickup[Number(e.target.value)].label; renderCart(); saveState(); showMsg(''); }
   });
   $('email').addEventListener('input', saveState);
+  $('phone').addEventListener('input', saveState);
   $('form').addEventListener('submit', submitOrder);
 }
 start();
