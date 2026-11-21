@@ -323,7 +323,7 @@ function imgUrl(it, thumb) {
   if (!v) return '';
   if (DEMO_IMG[v]) return DEMO_IMG[v];
   if (/^https:\/\//i.test(v)) return v;
-  return IMAGE_BASE + (thumb ? 'thumb/' : '') + encodeURIComponent(v);
+ return IMAGE_BASE + encodeURIComponent(v);
 }
 function picHtml(i, s) {
   if (!catalog.items.some(function (x) { return x.image; })) return '';  // no pictures set up: plain list
