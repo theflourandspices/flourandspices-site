@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Flour and Spices</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600&display=swap">
 <style>
@@ -286,10 +288,20 @@ function loadState() {
 function clearCartState() { try { localStorage.removeItem('fas-order-v1'); } catch (e) {} }
 
 /* ---- catalog ---- */
+// The last item list is kept in the browser, so a returning visitor sees the shop at once
+// while the fresh list loads. (Prices and stock are always checked again when an order is placed.)
+function saveCatalog(c) { try { localStorage.setItem('fas-catalog-v1', JSON.stringify(c)); } catch (e) {} }
+function loadCatalog() {
+  try {
+    const c = JSON.parse(localStorage.getItem('fas-catalog-v1') || 'null');
+    return c && Array.isArray(c.items) && c.items.length && Array.isArray(c.pickup) ? c : null;
+  } catch (e) { return null; }
+}
 function fetchCatalog() {
   if (!API_URL) return Promise.resolve(DEMO);
   return fetch(API_URL, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (c) {
     if (c.error) throw new Error(c.error);
+    saveCatalog(c);
     return c;
   });
 }
@@ -509,18 +521,25 @@ function refreshCatalog(notify, keepMessage) {
 /* ---- start ---- */
 function start() {
   $('demo').hidden = !!API_URL;
-  fetchCatalog().then(function (c) {
+  function boot(c) {
     catalog = c;
     const saved = loadState();
     if (saved) { reconcileCart(saved.cart); pickupChoice = (catalog.pickup.some(function (p) { return p.label === saved.pickup; }) ? saved.pickup : ''); $('email').value = saved.email || ''; $('phone').value = saved.phone || ''; }
     $('pay').textContent = catalog.paymentText;
     renderChips(); renderItems(); renderPickup(); renderCart();
     $('loading').hidden = true; $('shop').hidden = false;
-  }).catch(function (err) {
-    $('loading').hidden = true;
-    $('loaderr').hidden = false;
-    $('loaderr').innerHTML = esc(err && err.message ? err.message : 'We could not load the item list.') + ' <button class="linkbtn" type="button" id="retry">Try again</button>';
-  });
+  }
+  const cached = API_URL ? loadCatalog() : null;
+  if (cached) {
+    boot(cached);                 // show the shop straight away ...
+    refreshCatalog(false, false); // ... then bring it up to date (tells the customer if their cart changed)
+  } else {
+    fetchCatalog().then(boot).catch(function (err) {
+      $('loading').hidden = true;
+      $('loaderr').hidden = false;
+      $('loaderr').innerHTML = esc(err && err.message ? err.message : 'We could not load the item list.') + ' <button class="linkbtn" type="button" id="retry">Try again</button>';
+    });
+  }
 
   document.addEventListener('click', function (e) {
     const t = e.target.closest('button'); if (!t) return;
