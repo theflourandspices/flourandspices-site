@@ -408,9 +408,8 @@ function renderCart() {
       '<span class="q">' + l.qty + ' &times; ' + fmt(Math.round(lines[k].price * 100)) + (l.taxable ? ' + tax' : '') + '</span>' +
       '<span class="t"><button class="linkbtn" type="button" data-act="rm" data-i="' + lines[k].i + '">Remove</button></span></li>';
   }).join('');
-  const rate = Number((catalog.taxRate * 100).toFixed(2));
   let h = '<dt>Items</dt><dd>' + fmt(t.itemsCents) + '</dd>';
-  if (t.taxCents > 0) h += '<dt>Tax (' + rate + '% on items marked + tax)</dt><dd>' + fmt(t.taxCents) + '</dd>';
+  if (t.taxCents > 0) h += '<dt>Tax</dt><dd>' + fmt(t.taxCents) + '</dd>';
   if (t.baseFeeCents > 0) h += '<dt>Delivery fee' + (t.waived ? ' (free over ' + fmt(catalog.freeDeliveryOverCents) + ')' : '') + '</dt><dd>' + fmt(t.feeCents) + '</dd>';
   h += '<dt class="grand">Total</dt><dd class="grand">' + fmt(t.totalCents) + '</dd>';
   $('tot').innerHTML = h;
@@ -492,14 +491,13 @@ function submitOrder(e) {
   });
 }
 function showDone(r) {
-  const rate = Number((catalog.taxRate * 100).toFixed(2));
   let h = '<h2>Thank you for your order</h2><p class="no">' + esc(r.orderNo) + '</p>' +
     '<p>' + (r.emailSent ? 'Your invoice is on its way to ' + esc($('email').value.trim()) + '. If you do not see it in a few minutes, check your spam folder.'
       : 'Your order is placed, but we could not send the invoice email. We will contact you shortly.') + '</p>' +
     '<ul class="lines">' + r.lines.map(function (l) {
       return '<li class="line"><span class="n">' + esc(splitName(l.name).label) + '</span><span class="t">' + fmt(l.cents + l.taxCents) + '</span><span class="q">' + l.qty + ' &times; ' + fmt(l.cents / l.qty) + (l.taxCents ? ' + ' + fmt(l.taxCents) + ' tax' : '') + '</span></li>';
     }).join('') + '</ul><dl class="tot"><dt>Items</dt><dd>' + fmt(r.itemsCents) + '</dd>' +
-    (r.taxCents ? '<dt>Tax (' + rate + '%)</dt><dd>' + fmt(r.taxCents) + '</dd>' : '') +
+    (r.taxCents ? '<dt>Tax</dt><dd>' + fmt(r.taxCents) + '</dd>' : '') +
     (r.feeCents || r.waived ? '<dt>Delivery fee' + (r.waived ? ' (free)' : '') + '</dt><dd>' + fmt(r.feeCents) + '</dd>' : '') +
     '<dt class="grand">Total</dt><dd class="grand">' + fmt(r.totalCents) + '</dd></dl>' +
     '<p>' + esc(r.pickup) + '</p><p class="pay">' + esc(catalog.paymentText) + '</p>' +
