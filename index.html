@@ -3,7 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>The Flour and Spices</title>
+<title>The Flour and Spices | Indian Groceries in Tampa, FL</title>
+<meta name="description" content="Indian flours, masalas, snacks and kokum agal from Sohum, Athavale's, Ram Bandhu and more. Free Valrico pickup, Tampa-area delivery, shipping on request.">
+<link rel="canonical" href="https://theflourandspices.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Flour and Spices">
+<meta property="og:title" content="The Flour and Spices | Indian Groceries in Tampa, FL">
+<meta property="og:description" content="Indian flours, masalas, snacks and kokum agal from Sohum, Athavale's, Ram Bandhu and more. Order online for Valrico pickup or Tampa-area delivery.">
+<meta property="og:url" content="https://theflourandspices.com/">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"The Flour and Spices","url":"https://theflourandspices.com/",
+ "description":"Indian groceries: flours, masalas, snacks, pickles, kokum agal and kokum syrup. Pickup in Valrico, delivery around Tampa, shipping on request.",
+ "email":"theflourandspices@gmail.com","sameAs":["https://www.instagram.com/theflourandspices"],
+ "areaServed":[{"@type":"City","name":"Valrico"},{"@type":"City","name":"Tampa"},{"@type":"City","name":"Brandon"},{"@type":"City","name":"Gainesville"},{"@type":"City","name":"Orlando"},{"@type":"City","name":"Sarasota"},{"@type":"City","name":"Bradenton"}]}
+</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://script.googleusercontent.com">
@@ -143,6 +157,11 @@ dl.tot .grand { font-weight: 700; font-size: 1.15rem; color: var(--ink); padding
 .lb p { margin: 10px 0 0; font-weight: 500; overflow-wrap: anywhere; }
 .lb .btn { margin-top: 10px; }
 @media (prefers-reduced-motion: no-preference) { .chip, .btn, .opt { transition: background-color .15s, border-color .15s; } }
+.about { margin: 48px 0 24px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.92rem; max-width: 80ch; }
+.about h2 { font: 700 1.15rem/1.2 var(--display); color: var(--ink); margin: 0 0 8px; }
+.about h3 { font: 600 0.95rem/1.3 var(--body, inherit); color: var(--ink); margin: 18px 0 4px; }
+.about p { margin: 0 0 6px; }
+.about a { color: inherit; }
 </style>
 </head>
 <body>
@@ -156,6 +175,7 @@ dl.tot .grand { font-weight: 700; font-size: 1.15rem; color: var(--ink); padding
     <nav class="links" aria-label="Find us">
       <a href="https://www.instagram.com/theflourandspices" target="_blank" rel="noopener">Instagram</a>
       <a href="https://chat.whatsapp.com/Gnfj1lSDifV2RLEn1NFaKx" target="_blank" rel="noopener">WhatsApp</a>
+      <a href="mailto:theflourandspices@gmail.com">Email</a>
     </nav>
   </header>
   <p class="demo" id="demo" hidden>Preview with sample items and prices. Orders placed here are not sent anywhere.</p>
@@ -198,6 +218,14 @@ dl.tot .grand { font-weight: 700; font-size: 1.15rem; color: var(--ink); padding
       </form>
     </aside>
   </div>
+  <section class="about" aria-labelledby="aboutH">
+    <h2 id="aboutH">Indian groceries in Tampa, Florida</h2>
+    <p>The Flour and Spices is a small business based in Valrico, near Tampa, selling Indian pantry staples: flours (jowar, also spelled jawar or jowari; bajra; ragi; rice flour; lokwan wheat atta), thalipeeth bhajani, masalas, chivda, chakli and farsan, sweets and ladoo mixes, pickles, papad, kokum agal, kokum syrup, kairi panha, and more.</p>
+    <h3>Brands we carry</h3>
+    <p>Sohum Udyog, Athavale's (Athavale), Ram Bandhu, Pandit Foods, Kailas Bhel, Gore Bandhu, Maratha Darbar, Sawai, Vaze Bandhu, NutrAmla, Anuved, Dev Bhakti and Shri Shubhh. Stock changes often, so the list above shows what is available right now.</p>
+    <h3>Pickup, delivery and shipping</h3>
+    <p>Free pickup in Valrico. Delivery around Tampa, including New Tampa. We have delivered as far as Gainesville, and for larger orders we can deliver to Orlando (Central Florida), Sarasota and Bradenton. Message us on <a href="https://www.instagram.com/theflourandspices" target="_blank" rel="noopener">Instagram</a> or <a href="https://chat.whatsapp.com/Gnfj1lSDifV2RLEn1NFaKx" target="_blank" rel="noopener">WhatsApp</a>, or email <a href="mailto:theflourandspices@gmail.com">theflourandspices@gmail.com</a>, before ordering for those areas. Shipping is available on request.</p>
+  </section>
 </div>
 <dialog class="lb" id="lb" aria-label="Product photo">
   <img id="lbimg" alt="">
@@ -345,7 +373,7 @@ function picHtml(i, s) {
   const it = catalog.items[i], th = imgUrl(it, true), ph = esc(s.label.charAt(0).toUpperCase());
   if (!th) return '<div class="pic ph" aria-hidden="true">' + ph + '</div>';
   return '<button class="pic" type="button" data-zoom="' + i + '" data-ph="' + ph + '" aria-label="Enlarge photo of ' + esc(s.label) + '">' +
-    '<img src="' + esc(th) + '" alt="" width="84" height="84" loading="lazy"></button>';
+    '<img src="' + esc(th) + '" alt="' + esc(s.label) + '" width="84" height="84" loading="lazy"></button>';
 }
 function openZoom(i) {
   const lb = $('lb'), it = catalog.items[i];
