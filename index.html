@@ -151,7 +151,7 @@ dl.tot .grand { font-weight: 700; font-size: 1.15rem; color: var(--ink); padding
   <header class="top">
     <div>
       <h1>The Flour and Spices</h1>
-      <p class="sub">Indian pantry staples: flours, masalas, snacks and pickles. Choose your items and pickup, and we'll email your invoice.</p>
+      <p class="sub">Indian pantry staples: flours, masalas, snacks and pickles. Choose your items and delivery method, and we'll email your invoice.</p>
     </div>
     <nav class="links" aria-label="Find us">
       <a href="https://www.instagram.com/theflourandspices" target="_blank" rel="noopener">Instagram</a>
@@ -181,7 +181,7 @@ dl.tot .grand { font-weight: 700; font-size: 1.15rem; color: var(--ink); padding
       <ul class="lines" id="lines"></ul>
 
       <form id="form" novalidate>
-        <fieldset id="pickup"><legend>Pickup or delivery</legend></fieldset>
+        <fieldset id="pickup"><legend>Delivery method</legend></fieldset>
         <label class="f" for="email">Your email</label>
         <input class="field" id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
         <p class="hint">We send your invoice here.</p>
@@ -426,7 +426,7 @@ function renderCart() {
   $('barTotal').textContent = fmt(t.totalCents);
 }
 function renderPickup() {
-  $('pickup').innerHTML = '<legend>Pickup or delivery</legend>' + catalog.pickup.map(function (p, k) {
+  $('pickup').innerHTML = '<legend>Delivery method</legend>' + catalog.pickup.map(function (p, k) {
     return '<label class="opt"><input type="radio" name="pickup" value="' + k + '"' + (p.label === pickupChoice ? ' checked' : '') + '><span>' + esc(p.label) + '</span></label>';
   }).join('');
 }
@@ -454,7 +454,7 @@ function phoneDigits(v) {
 }
 function validate() {
   if (!Object.keys(cart).length) return 'Your cart is empty. Tap Add on an item first.';
-  if (!pickupChoice) return 'Please choose pickup or delivery.';
+  if (!pickupChoice) return 'Please choose a delivery method.';
   const em = $('email').value.trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) return 'Please enter a valid email address.';
   if (!phoneDigits($('phone').value)) return 'Please enter a 10-digit phone number.';
