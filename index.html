@@ -341,6 +341,20 @@ function fetchCatalog() {
     return c;
   });
 }
+// Direct links to a category: theflourandspices.com/#flours, /#papad-pickles (or ?cat=flours)
+function catSlug(c) { return String(c).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
+function categoryFromUrl() {
+  let want = '';
+  try {
+    want = decodeURIComponent(String(location.hash || '').replace(/^#\/?/, ''));
+    if (!want) want = new URLSearchParams(location.search).get('cat') || '';
+  } catch (e) { want = ''; }
+  want = catSlug(want);
+  if (!want || want === 'all') return 'All';
+  const cats = catalog ? catalog.items.map(function (it) { return splitName(it.name).cat; }) : [];
+  for (let i = 0; i < cats.length; i++) if (catSlug(cats[i]) === want) return cats[i];
+  return 'All';
+}
 function splitName(full) {
   const k = full.indexOf(' - ');
   return k > 0 ? { cat: full.slice(0, k), label: full.slice(k + 3) } : { cat: 'Other items', label: full };
@@ -547,6 +561,7 @@ function refreshCatalog(notify, keepMessage) {
   return fetchCatalog().then(function (c) {
     catalog = c;
     const changed = reconcileCart();
+    if (category !== 'All' && !catalog.items.some(function (it) { return splitName(it.name).cat === category; })) category = 'All';
     renderChips(); renderItems(); renderPickup(); renderCart(); saveState();
     if (!keepMessage && (notify || changed)) showMsg('Some items changed since you added them, so we updated your order. Please check it before placing it.');
   }).catch(function () {});
@@ -559,10 +574,12 @@ function start() {
     catalog = c;
     const saved = loadState();
     if (saved) { reconcileCart(saved.cart); pickupChoice = (catalog.pickup.some(function (p) { return p.label === saved.pickup; }) ? saved.pickup : ''); $('email').value = saved.email || ''; $('phone').value = saved.phone || ''; }
-    $('pay').textContent = catalog.paymentText;
+       $('pay').textContent = catalog.paymentText;
+    category = categoryFromUrl();
     renderChips(); renderItems(); renderPickup(); renderCart();
     $('loading').hidden = true; $('shop').hidden = false;
   }
+  window.addEventListener('hashchange', function () { if (catalog) { category = categoryFromUrl(); renderChips(); renderItems(); } });
   const cached = API_URL ? loadCatalog() : null;
   if (cached) {
     boot(cached);                 // show the shop straight away ...
@@ -581,7 +598,11 @@ function start() {
     if (t.id === 'lbclose') { $('lb').close(); return; }
     if (t.id === 'again') { $('done').hidden = true; $('shop').hidden = false; showMsg(''); refreshCatalog(false); window.scrollTo(0, 0); return; }
     if (t.id === 'retry') { location.reload(); return; }
-    if (t.dataset.cat) { category = t.dataset.cat; renderChips(); renderItems(); return; }
+        if (t.dataset.cat) {
+      category = t.dataset.cat; renderChips(); renderItems();
+      try { history.replaceState(null, '', category === 'All' ? location.pathname : '#' + catSlug(category)); } catch (e) {}
+      return;
+    }
     const act = t.dataset.act; if (!act) return;
     const i = Number(t.dataset.i), q = cart[i] || 0;
     if (act === 'add' || act === 'inc') setQty(i, q + 1);
