@@ -215,6 +215,8 @@ dl.tot .grand { font-weight: 700; font-size: 1.15rem; color: var(--ink); padding
 
       <form id="form" novalidate>
         <fieldset id="pickup"><legend>Delivery method</legend></fieldset>
+       <label class="f" for="name">Your name</label>
+        <input class="field" id="name" name="name" type="text" autocomplete="name" placeholder="First and last name" maxlength="60" required>
         <label class="f" for="email">Your email</label>
         <input class="field" id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
         <p class="hint">We send your invoice here.</p>
@@ -312,7 +314,7 @@ function saveState() {
   try {
     const byName = {};
     Object.keys(cart).forEach(function (i) { byName[catalog.items[i].name] = cart[i]; });
-    localStorage.setItem('fas-order-v1', JSON.stringify({ cart: byName, email: $('email').value, phone: $('phone').value, pickup: pickupChoice }));
+    localStorage.setItem('fas-order-v1', JSON.stringify({ cart: byName, name: $('name').value, email: $('email').value, phone: $('phone').value, pickup: pickupChoice }));
   } catch (e) {}
 }
 function loadState() {
@@ -501,6 +503,7 @@ function phoneDigits(v) {
 function validate() {
   if (!Object.keys(cart).length) return 'Your cart is empty. Tap Add on an item first.';
   if (!pickupChoice) return 'Please choose a delivery method.';
+ if ($('name').value.trim().length < 2) return 'Please enter your name.';
   const em = $('email').value.trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) return 'Please enter a valid email address.';
   if (!phoneDigits($('phone').value)) return 'Please enter a 10-digit phone number.';
@@ -514,7 +517,7 @@ function submitOrder(e) {
   showMsg('');
   sending = true; $('place').disabled = true; $('place').textContent = 'Placing your order…';
   const lines = cartLines();
-  const payload = { email: $('email').value.trim(), phone: phoneDigits($('phone').value), pickup: pickupChoice, website: $('website').value,
+  const payload = { name: $('name').value.trim(), email: $('email').value.trim(), phone: phoneDigits($('phone').value), pickup: pickupChoice, website: $('website').value,
     items: lines.map(function (l) { return { name: l.name, qty: l.qty }; }) };
   let p;
   if (!API_URL) {
@@ -570,7 +573,7 @@ function start() {
   function boot(c) {
     catalog = c;
     const saved = loadState();
-    if (saved) { reconcileCart(saved.cart); pickupChoice = (catalog.pickup.some(function (p) { return p.label === saved.pickup; }) ? saved.pickup : ''); $('email').value = saved.email || ''; $('phone').value = saved.phone || ''; }
+    if (saved) { reconcileCart(saved.cart); pickupChoice = (catalog.pickup.some(function (p) { return p.label === saved.pickup; }) ? saved.pickup : ''); $('name').value = saved.name || ''; $('email').value = saved.email || ''; $('phone').value = saved.phone || ''; }
        $('pay').textContent = catalog.paymentText;
     category = categoryFromUrl();
     renderChips(); renderItems(); renderPickup(); renderCart();
@@ -625,6 +628,7 @@ function start() {
   $('pickup').addEventListener('change', function (e) {
     if (e.target.name === 'pickup') { pickupChoice = catalog.pickup[Number(e.target.value)].label; renderCart(); saveState(); showMsg(''); }
   });
+  $('name').addEventListener('input', saveState);
   $('email').addEventListener('input', saveState);
   $('phone').addEventListener('input', saveState);
   $('form').addEventListener('submit', submitOrder);
