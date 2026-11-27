@@ -428,6 +428,12 @@ function renderChips() {
     return '<button class="chip" type="button" data-cat="' + esc(c) + '" aria-pressed="' + (c === category) + '">' + esc(c) + '</button>';
   }).join('');
 }
+ // After the list changes (a category or a search), bring its top into view
+function showListTop() {
+  const el = $('items'), bar = document.querySelector('.tools'), h = bar ? bar.offsetHeight : 0;
+  const top = el.getBoundingClientRect().top;
+  if (top < h) window.scrollTo(0, window.scrollY + top - h);
+}
 function renderItems() {
   const groups = {}, order = [];
   catalog.items.forEach(function (it, i) {
@@ -587,7 +593,7 @@ function start() {
     renderChips(); renderItems(); renderPickup(); renderCart();
     $('loading').hidden = true; $('shop').hidden = false;
   }
-  window.addEventListener('hashchange', function () { if (catalog) { category = categoryFromUrl(); renderChips(); renderItems(); } });
+  window.addEventListener('hashchange', function () { if (catalog) { category = categoryFromUrl(); renderChips(); renderItems(); showListTop(); } });
   const cached = API_URL ? loadCatalog() : null;
   if (cached) {
     boot(cached);                 // show the shop straight away ...
@@ -607,7 +613,7 @@ function start() {
     if (t.id === 'again') { $('done').hidden = true; $('shop').hidden = false; showMsg(''); refreshCatalog(false); window.scrollTo(0, 0); return; }
     if (t.id === 'retry') { location.reload(); return; }
         if (t.dataset.cat) {
-      category = t.dataset.cat; renderChips(); renderItems();
+      category = t.dataset.cat; renderChips(); renderItems(); showListTop();
       try { history.replaceState(null, '', category === 'All' ? location.pathname : '#' + catSlug(category)); } catch (e) {}
       return;
     }
@@ -632,7 +638,7 @@ function start() {
     d.className = 'pic ph'; d.setAttribute('aria-hidden', 'true'); d.textContent = b.dataset.ph || '';
     b.replaceWith(d);
   }, true);
-  $('search').addEventListener('input', function (e) { query = e.target.value.trim().toLowerCase(); renderItems(); });
+  $('search').addEventListener('input', function (e) { query = e.target.value.trim().toLowerCase(); renderItems(); showListTop(); });
   $('pickup').addEventListener('change', function (e) {
     if (e.target.name === 'pickup') { pickupChoice = catalog.pickup[Number(e.target.value)].label; renderCart(); saveState(); showMsg(''); }
   });
