@@ -550,7 +550,7 @@ function showDone(r) {
     (r.taxCents ? '<dt>Tax</dt><dd>' + fmt(r.taxCents) + '</dd>' : '') +
     (r.feeCents || r.waived ? '<dt>Delivery fee' + (r.waived ? ' (free)' : '') + '</dt><dd>' + fmt(r.feeCents) + '</dd>' : '') +
     '<dt class="grand">Total</dt><dd class="grand">' + fmt(r.totalCents) + '</dd></dl>' +
-    '<p>' + esc(r.pickup) + '</p><p class="pay">' + esc(catalog.paymentText) + '</p>' +
+    '<p>' + esc(r.pickup) + '</p><p class="pay">' + esc(r.paymentText || catalog.paymentText) + '</p>' +
     '<p><button class="btn" id="again" type="button">Start a new order</button></p>';
   $('done').innerHTML = h; $('done').hidden = false; $('shop').hidden = true; $('bar').hidden = true;
   clearCartState(); cart = {}; pickupChoice = '';
